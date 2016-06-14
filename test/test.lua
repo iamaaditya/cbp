@@ -31,7 +31,15 @@ function cbptest.testConv()
 end
 
 function cbptest.testGrad()
-   assert(true)
+   local x = torch.Tensor{{1,2,3},{2,3,4}}
+   local y = torch.Tensor{{1,1,1},{2,2,2}}
+   local c = nn.CompactBilinearPooling(x:size(2))
+   local diff = torch.Tensor{{6,6,6},{18,18,18}}
+   c:forward{x:add(torch.rand(2,3):mul(precision)),y:add(torch.rand(2,3):mul(precision))}
+   diff:add(-c.output):div(precision)
+   c:backward({x:add(torch.rand(2,3):mul(precision)),y:add(torch.rand(2,3):mul(precision))}, torch.Tensor(2,3):fill(1))
+   local grad = c.gradInput
+   assert(diff:add(-grad):norm() < precision, ans:norm())
 end
 
 function cbp.test(tests)
